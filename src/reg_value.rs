@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 // Copyright 2023, Igor Shaula
 // Licensed under the MIT License <LICENSE or
 // http://opensource.org/licenses/MIT>. This file
@@ -8,10 +10,16 @@ use crate::types::FromRegValue;
 use std::fmt;
 
 /// Raw registry value
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct RegValue {
     pub bytes: Vec<u8>,
     pub vtype: RegType,
+}
+
+impl Default for RegValue {
+    fn default() -> Self {
+        Self { bytes: Default::default(), vtype: REG_NONE }
+    }
 }
 
 macro_rules! format_reg_value {

@@ -23,54 +23,11 @@ windows-sys = { version = "0.59", features = [
     "Win32_System_Diagnostics_Debug",
 ] }
 chrono = { version = "0.4.6", optional = true }
-serde = { version = "1", optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 
 [dev-dependencies]
 rand = "0.3"
 tempfile = "~3.0"
-serde_derive = "1"
-serde_json = "1"
 serde-transcode = "1"
 serde_bytes = "0.11"
-
-[features]
-transactions = []
-serialization-serde = ["transactions", "serde"]
-
-[[example]]
-name = "basic_usage"
-required-features = ["chrono"]
-
-[[example]]
-name = "enum"
-
-[[example]]
-name = "load_app_key"
-
-[[example]]
-name = "transactions"
-required-features = ["transactions"]
-
-[[example]]
-name = "serialization"
-required-features = ["serialization-serde"]
-
-[[example]]
-name = "transacted_serialization"
-required-features = ["serialization-serde"]
-
-[[example]]
-name = "reg2json"
-required-features = ["serialization-serde"]
-
-[[example]]
-name = "map_key_serialization"
-required-features = ["serialization-serde"]
-
-[[example]]
-name = "installed_apps"
-required-features = ["serialization-serde"]
-
-[package.metadata.docs.rs]
-all-features = true
-targets = ["x86_64-pc-windows-msvc", "i686-pc-windows-msvc"]

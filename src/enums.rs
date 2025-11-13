@@ -19,7 +19,7 @@ macro_rules! winapi_enum{
     ($t:ident, $doc:expr => [$($v:ident),*]) => (
         #[doc=$doc]
         #[allow(non_camel_case_types)]
-        #[derive(Debug,Clone,PartialEq)]
+        #[derive(Debug,Clone,PartialEq,serde::Serialize,serde::Deserialize)]
         pub enum $t {
             $( $v = windows_sys::Win32::System::Registry::$v as isize ),*
         }

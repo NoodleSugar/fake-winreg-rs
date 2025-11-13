@@ -11,6 +11,9 @@ use crate::RegValue;
 use std::convert::TryInto;
 use std::ffi::{OsStr, OsString};
 use std::io;
+#[cfg(not(windows))]
+use std::os::unix::ffi::OsStrExt;
+#[cfg(windows)]
 use std::os::windows::ffi::OsStringExt;
 use std::slice;
 use windows_sys::Win32::Foundation;
@@ -69,6 +72,25 @@ impl FromRegValue for Vec<String> {
 }
 
 impl FromRegValue for OsString {
+    #[cfg(not(windows))]
+    fn from_reg_value(val: &RegValue) -> io::Result<OsString> {
+        match val.vtype {
+            REG_SZ | REG_EXPAND_SZ | REG_MULTI_SZ => {
+                let mut words = unsafe {
+                    #[allow(clippy::cast_ptr_alignment)]
+                    slice::from_raw_parts(val.bytes.as_ptr() as *const u8, val.bytes.len() / 2)
+                };
+                while let Some(0) = words.last() {
+                    words = &words[0..words.len() - 1];
+                }
+                let s = OsStr::from_bytes(words);
+                Ok(s.to_os_string())
+            }
+            _ => werr!(Foundation::ERROR_BAD_FILE_TYPE),
+        }
+    }
+
+    #[cfg(windows)]
     fn from_reg_value(val: &RegValue) -> io::Result<OsString> {
         match val.vtype {
             REG_SZ | REG_EXPAND_SZ | REG_MULTI_SZ => {
@@ -88,6 +110,28 @@ impl FromRegValue for OsString {
 }
 
 impl FromRegValue for Vec<OsString> {
+    #[cfg(not(windows))]
+    fn from_reg_value(val: &RegValue) -> io::Result<Vec<OsString>> {
+        match val.vtype {
+            REG_MULTI_SZ => {
+                let mut words = unsafe {
+                    slice::from_raw_parts(val.bytes.as_ptr() as *const u8, val.bytes.len() / 2)
+                };
+                while let Some(0) = words.last() {
+                    words = &words[0..words.len() - 1];
+                }
+                let v: Vec<OsString> = words
+                    .split(|ch| *ch == 0u8)
+                    .map(OsStr::from_bytes)
+                    .map(OsStr::to_os_string)
+                    .collect();
+                Ok(v)
+            }
+            _ => werr!(Foundation::ERROR_BAD_FILE_TYPE),
+        }
+    }
+
+    #[cfg(windows)]
     fn from_reg_value(val: &RegValue) -> io::Result<Vec<OsString>> {
         match val.vtype {
             REG_MULTI_SZ => {
